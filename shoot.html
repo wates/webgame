@@ -1,0 +1,210 @@
+<html>
+<head>
+  <script type="text/javascript">
+    window.addEventListener('keydown', this.keydown, false);
+    window.addEventListener('keyup', this.keyup, false);
+
+    let L, R, U, D, S;
+    function keydown(k) {
+      if (k.keyCode == 32) {//space
+        S = true;
+      } else if (k.keyCode == 83) {
+        L = true;
+      } else if (k.keyCode == 70) {
+        R = true;
+      } else if (k.keyCode == 69) {
+        U = true;
+      } else if (k.keyCode == 68) {
+        D = true;
+      } else {
+        console.log(k.keyCode);
+      }
+    }
+    function keyup(k) {
+      if (k.keyCode == 32) {//space
+        S = false;
+      } else if (k.keyCode == 83) {
+        L = false;
+      } else if (k.keyCode == 70) {
+        R = false;
+      } else if (k.keyCode == 69) {
+        U = false;
+      } else if (k.keyCode == 68) {
+        D = false;
+      }
+    }
+
+    let px = 800;
+    let py = 800;
+
+    let cooldown = 0;
+    let tama = [];
+    let unko = [];
+    let mob = [
+      "0004444444000",
+      "0333333333330",
+      "0333333333330",
+      "2222222222222",
+      "2222222222222",
+      "1111111111111",
+      "0000000000000"
+    ].map(a => a.split("").map(a => a >> 0));
+    let mobx = 400;
+    let moby = 50;
+    let mob_dir = 2;
+    const MOB_SIZE = 48;
+
+    function update() {
+      if (L) {
+        px -= 10;
+      }
+      if (R) {
+        px += 10;
+      }
+      if (U) {
+        py -= 10;
+      }
+      if (D) {
+        py += 10;
+      }
+      if (px < 0) {
+        px = 0;
+      }
+      if (py > 1600) {
+        py = 1600;
+      }
+      if (S) {
+        if (cooldown == 0) {
+          tama.push({
+            x: px,
+            y: py,
+            vx: 0,
+            vy: -10
+          });
+          cooldown = 30;
+        }
+      }
+
+      if (cooldown > 0) {
+        cooldown--;
+      }
+      for (var i = 0; i < tama.length; i++) {
+        tama[i].x += tama[i].vx;
+        tama[i].y += tama[i].vy;
+        if (tama[i].y < -32) {
+          tama[i].del = true;
+        }
+
+        for (let y = 0; y < mob.length; y++) {
+          for (let x = 0; x < mob[y].length; x++) {
+            if (mob[y][x] > 0 &&
+              tama[i].x < x * 64 + mobx + MOB_SIZE / 2 &&
+              tama[i].x > x * 64 + mobx - MOB_SIZE / 2 &&
+              tama[i].y < y * 64 + moby + MOB_SIZE / 2 &&
+              tama[i].y > y * 64 + moby - MOB_SIZE / 2) {
+              mob[y][x] = 0;
+              tama[i].del = true;
+            }
+          }
+        }
+      }
+      let max_mob_x = -1;
+      let min_mob_x = 1000;
+      let max_mob_y = -1;
+
+      for (let y = 0; y < mob.length; y++) {
+        for (let x = 0; x < mob[y].length; x++) {
+          if (mob[y][x]) {
+            if (min_mob_x > x) {
+              min_mob_x = x;
+            }
+            if (max_mob_x < x) {
+              max_mob_x = x;
+            }
+            if (max_mob_y < y) {
+              max_mob_y = y;
+            }
+            if (mob[y + 1][x] == 0 && Math.random() < 0.01) {
+              unko.push({
+                x: x * 64 + mobx,
+                y: y * 64 + moby + 32,
+                vy: 5
+              });
+            }
+
+          }
+        }
+      }
+      mobx += mob_dir;
+      if (mob_dir > 0 && mobx + max_mob_x * 64 > 1400) {
+        mob_dir *= -1;
+        moby += 32;
+      }
+      if (mob_dir < 0 && mobx + min_mob_x * 64 < 200) {
+        mob_dir *= -1;
+        moby += 32;
+      }
+
+      for (var i = 0; i < unko.length; i++) {
+        unko[i].y += unko[i].vy;
+        if (unko[i].y > 900) {
+          unko[i].del = true;
+        }
+        if (unko[i].x < px + 16 &&
+          unko[i].x > px - 16 &&
+          unko[i].y < py + 16 &&
+          unko[i].y > py - 16) {
+          px = 0;
+
+        }
+      }
+
+      tama = tama.filter(a => !a.del);
+      unko = unko.filter(a => !a.del);
+    }
+
+    function render() {
+      var c = document.getElementById("canvas");
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "#222222";
+      ctx.fillRect(0, 0, 1600, 900);
+
+      for (let y = 0; y < mob.length; y++) {
+        for (let x = 0; x < mob[y].length; x++) {
+          if (mob[y][x]) {
+            ctx.fillStyle = ["",
+              "#22ff22",
+              "#ffff22",
+              "#ff22ff",
+              "#ff2222"
+            ][mob[y][x]];
+            ctx.fillRect(x * 64 + mobx - MOB_SIZE / 2, y * 64 + moby - MOB_SIZE / 2, MOB_SIZE, MOB_SIZE);
+          }
+        }
+      }
+      for (var i = 0; i < unko.length; i++) {
+        ctx.fillStyle = "#ffaaaa";
+        ctx.fillRect(unko[i].x - 4, unko[i].y - 32, 8, 32);
+      }
+
+      for (var i = 0; i < tama.length; i++) {
+        ctx.fillStyle = "#ccccff";
+        ctx.fillRect(tama[i].x - 4, tama[i].y, 8, 32);
+      }
+
+      ctx.fillStyle = "#4444FF";
+      ctx.fillRect(px - 16, py - 16, 32, 32);
+    }
+
+    setInterval(() => {
+      update();
+      render();
+    }, 17);
+  </script>
+</head>
+
+<body>
+  <canvas id="canvas" width="1600" height="900" style="background:rgb(0, 0, 0)"></canvas>
+</body>
+
+</html>

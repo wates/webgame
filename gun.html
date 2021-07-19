@@ -1,0 +1,137 @@
+<html>
+
+<head>
+  <script type="text/javascript">
+    window.addEventListener('keydown', this.keydown, false);
+    window.addEventListener('keyup', this.keyup, false);
+
+    let L, R, U, D, S;
+    function keydown(k) {
+      if (k.keyCode == 32) {//space
+        S = true;
+      } else if (k.keyCode == 83) {
+        L = true;
+      } else if (k.keyCode == 70) {
+        R = true;
+      } else if (k.keyCode == 69) {
+        U = true;
+      } else if (k.keyCode == 68) {
+        D = true;
+      } else {
+        console.log(k.keyCode);
+      }
+    }
+    function keyup(k) {
+      if (k.keyCode == 32) {//space
+        S = false;
+      } else if (k.keyCode == 83) {
+        L = false;
+      } else if (k.keyCode == 70) {
+        R = false;
+      } else if (k.keyCode == 69) {
+        U = false;
+      } else if (k.keyCode == 68) {
+        D = false;
+      }
+    }
+
+    let mouse_pos = {
+      x: 0, y: 0
+    };
+
+    function mouse(e) {
+      
+      var rect = document.getElementById("canvas").getBoundingClientRect();
+
+      mouse_pos.x = e.clientX - rect.left;
+      mouse_pos.y = e.clientY - rect.top;
+    }
+
+    let px = 128;
+    let py = 128;
+
+
+    let wall = [
+      "111111111111111111111111111",
+      "111111111111111111111111111",
+      "110000000000000000000000011",
+      "110000000000000000000000011",
+      "110000000000000000000000011",
+      "110000111100000000000000011",
+      "110000000000000000000000011",
+      "110000000000000000000000011",
+      "110000000000000001000000011",
+      "110001100000000110000000011",
+      "110001000000000000000000011",
+      "110001000000000000000000011",
+      "110000000000000000000000011",
+      "111111111111111111111111111",
+      "111111111111111111111111111",
+    ].map(a => a.split("").map(b => b >> 0));
+    function update() {
+      let v = {
+        x: 0,
+        y: 0
+      }
+      if (L) {
+        v.x -= 8;
+      }
+      if (R) {
+        v.x += 8;
+      }
+      if (U) {
+        v.y -= 8;
+      }
+      if (D) {
+        v.y += 8;
+      }
+
+      if (wall[((py / 32) >>> 0)][(((px + 16) / 32) >>> 0) - 1] && v.x < 0) {
+        v.x = 0;
+      }
+      if (wall[((py / 32) >>> 0)][(((px - 16) / 32) >>> 0) + 1] && v.x > 0) {
+        v.x = 0;
+      }
+      if (wall[(((py + 16) / 32) >>> 0) - 1][((px / 32) >>> 0)] && v.y < 0) {
+        v.y = 0;
+      }
+      if (wall[(((py - 16) / 32) >>> 0) + 1][((px / 32) >>> 0)] && v.y > 0) {
+        v.y = 0;
+      }
+      px += v.x;
+      py += v.y;
+    }
+
+    function render() {
+      var c = document.getElementById("canvas");
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "#222222";
+      ctx.fillRect(0, 0, 1600, 900);
+
+      for (let y = 0; y < wall.length; y++) {
+        for (let x = 0; x < wall[y].length; x++) {
+          if (wall[y][x]) {
+            ctx.fillStyle = "#cccccc";
+            ctx.fillRect(x * 32, y * 32, 32, 32);
+          }
+        }
+      }
+
+      ctx.fillStyle = "#4444FF";
+      ctx.fillRect(px - 16, py - 16, 32, 32);
+      ctx.fillStyle = "#44ff44";
+      ctx.fillRect(mouse_pos.x-8, mouse_pos.y-8 , 16, 16);
+    }
+
+    setInterval(() => {
+      update();
+      render();
+    }, 17);
+  </script>
+</head>
+
+<body>
+  <canvas onmousemove="mouse(event)" id="canvas" width="1600" height="900" style="background:rgb(0, 0, 0)"></canvas>
+</body>
+
+</html>
