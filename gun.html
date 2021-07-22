@@ -40,7 +40,7 @@
     };
 
     function mouse(e) {
-      
+
       var rect = document.getElementById("canvas").getBoundingClientRect();
 
       mouse_pos.x = e.clientX - rect.left;
@@ -49,6 +49,11 @@
 
     let px = 128;
     let py = 128;
+    let cam = {
+      x: 0,
+      y: 0,
+
+    }
 
 
     let wall = [
@@ -63,6 +68,18 @@
       "110000000000000001000000011",
       "110001100000000110000000011",
       "110001000000000000000000011",
+      "110001000000000000000000011",
+      "110000000000000000000000011",
+      "110001000000000000000000011",
+      "110000000000000000000000011",
+      "110001000000000000000000011",
+      "110000000000000000000000011",
+      "110001000000000000000000011",
+      "110000000111111111000000011",
+      "110001000000000000000000011",
+      "110000000000000000000000011",
+      "110001000000000000000000011",
+      "110000000000000000000000011",
       "110001000000000000000000011",
       "110000000000000000000000011",
       "111111111111111111111111111",
@@ -100,7 +117,37 @@
       }
       px += v.x;
       py += v.y;
+
+      for (let i = 0; i < tama.length; i++) {
+        tama[i].x += tama[i].vx;
+        tama[i].y += tama[i].vy;
+      }
+      for (let i = 0; i < tama.length; i++) {
+        if (wall[((tama[i].y / 32) >>> 0)][(((tama[i].x + 16) / 32) >>> 0) - 1]) {
+          tama.splice(i, 1);
+          i--;
+        }
+      }
+      cam.x += (px - cam.x - 800) * 0.05;
+      cam.y += (py - cam.y - 450) * 0.05;
+      cam.x >>= 0;
+      cam.y >>= 0;
     }
+
+    let tama = [];
+
+    setInterval(() => {
+      let dir = Math.atan2(mouse_pos.y - py + cam.y, mouse_pos.x - px+cam.x);
+      let speed = 10;
+      tama.push({
+        x: px,
+        y: py,
+        vx: Math.cos(dir) * speed,
+        vy: Math.sin(dir) * speed
+      });
+
+
+    }, 200);
 
     function render() {
       var c = document.getElementById("canvas");
@@ -112,15 +159,21 @@
         for (let x = 0; x < wall[y].length; x++) {
           if (wall[y][x]) {
             ctx.fillStyle = "#cccccc";
-            ctx.fillRect(x * 32, y * 32, 32, 32);
+            ctx.fillRect(x * 32 - cam.x, y * 32 - cam.y, 32, 32);
           }
         }
       }
 
       ctx.fillStyle = "#4444FF";
-      ctx.fillRect(px - 16, py - 16, 32, 32);
+      ctx.fillRect(px - 16 - cam.x, py - 16 - cam.y, 32, 32);
       ctx.fillStyle = "#44ff44";
-      ctx.fillRect(mouse_pos.x-8, mouse_pos.y-8 , 16, 16);
+      ctx.fillRect(mouse_pos.x - 8, mouse_pos.y - 8, 16, 16);
+
+      for (let i = 0; i < tama.length; i++) {
+        ctx.fillStyle = "#8888ff";
+        ctx.fillRect(tama[i].x - 8 - cam.x, tama[i].y - 8 - cam.y, 16, 16);
+
+      }
     }
 
     setInterval(() => {
