@@ -1,0 +1,137 @@
+<html>
+
+<head>
+  <script type="text/javascript">
+    window.addEventListener('keydown', this.keydown, false);
+    window.addEventListener('keyup', this.keyup, false);
+
+    let L, R, U, D, S;
+    function keydown(k) {
+      if (k.keyCode == 32) {//space
+        S = true;
+      } else if (k.keyCode == 83) {
+        L = true;
+      } else if (k.keyCode == 70) {
+        R = true;
+      } else if (k.keyCode == 69) {
+        U = true;
+      } else if (k.keyCode == 68) {
+        D = true;
+      } else {
+        console.log(k.keyCode);
+      }
+    }
+    function keyup(k) {
+      if (k.keyCode == 32) {//space
+        S = false;
+      } else if (k.keyCode == 83) {
+        L = false;
+      } else if (k.keyCode == 70) {
+        R = false;
+      } else if (k.keyCode == 69) {
+        U = false;
+      } else if (k.keyCode == 68) {
+        D = false;
+      }
+    }
+
+    let px = 800;
+    let py = 800;
+    let count = 0;
+    let ene = [];
+    let tama = [];
+
+    function shoot(dx, dy) {
+      for (var i = -1; i <= 1; i++) {
+        let s = Math.sin(Math.PI / 12 * i);
+        let c = Math.cos(Math.PI / 12 * i);
+        tama.push({
+          x: px,
+          y: py,
+          vx: dx * c - dy * s,
+          vy: dx * s + dy * c,
+          count: 0
+        });
+
+      }
+    }
+
+    function update() {
+      if (L) {
+        px -= 10;
+      }
+      if (R) {
+        px += 10;
+      }
+      if (U) {
+        py -= 10;
+      }
+      if (D) {
+        py += 10;
+      }
+      count++;
+      if ((count % 100) == 0) {
+        ene.push({
+          x: Math.random() * 1600,
+          y: Math.random() * 900
+        });
+      }
+      if ((count % 20) == 0) {
+        for (var i = 0; i < ene.length; i++) {
+          let dx = ene[i].x - px;
+          let dy = ene[i].y - py;
+          let distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 200) {
+            shoot(dx / distance, dy / distance);
+          }
+        }
+      }
+
+      for (var i = 0; i < tama.length; i++) {
+        tama[i].x += tama[i].vx * 10;
+        tama[i].y += tama[i].vy * 10;
+        tama[i].count++;
+        if (tama[i].count > 200) {
+          tama.splice(i, 1);
+        }
+      }
+    }
+
+
+    function render() {
+      var c = document.getElementById("canvas");
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "#222222";
+      ctx.fillRect(0, 0, 1600, 900);
+
+      ctx.fillStyle = "#4444FF";
+      ctx.fillRect(px - 16, py - 16, 32, 32);
+      ctx.beginPath();
+      ctx.strokeStyle = "#aaaaaa";
+      ctx.arc(px, py, 200, 0, 6.29);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      for (var i = 0; i < ene.length; i++) {
+        ctx.fillStyle = "#FF4422";
+        ctx.fillRect(ene[i].x - 16, ene[i].y - 16, 32, 32);
+      }
+
+      for (var i = 0; i < tama.length; i++) {
+        ctx.fillStyle = "#44FF44";
+        ctx.fillRect(tama[i].x - 8, tama[i].y - 8, 16, 16);
+      }
+    }
+
+    setInterval(() => {
+      update();
+      render();
+    }, 17);
+  </script>
+</head>
+
+<body>
+  <canvas id="canvas" width="1600" height="900" style="background:rgb(0, 0, 0)"></canvas>
+</body>
+
+</html>
