@@ -1,0 +1,74 @@
+<html>
+
+<head>
+  <script type="text/javascript">
+
+    function rand(i){
+      return (Math.random() * i) >> 0;
+    }
+    let quiz = null;
+    let now = null;
+    let hit;
+
+    function open() {
+      now=quiz[rand(quiz.length)];
+      document.getElementById("quiz").innerText=now.e;
+      hit=rand(5);
+      for(let i=0;i<5;i++){
+        let d=document.getElementById("ans_"+i);
+        if(hit==i){
+          d.innerText=now.a;
+        }else{
+          d.innerText=quiz[rand(quiz.length)].a;
+        }
+      }
+    }
+
+    function answer(e) {
+      let n=document.createElement("li");
+      if(e==hit){
+        n.innerText="o";
+      }else{
+        n.innerText="x";
+      }
+      document.getElementById("log").appendChild(n);
+      open();
+    }
+
+    function makeQuiz() {
+      let exp;
+      let ans;
+      let a, b;
+      do {
+        a = rand(100);
+        b = rand(100);
+        exp = `${a}-${b}`;
+        ans = Number(eval(exp));
+      } while (a < b);
+      return {
+        e: exp,
+        a: ans
+      };
+    }
+
+    setInterval(() => {
+      if (!quiz) {
+        quiz = new Array(100).fill(0).map(makeQuiz);
+        open();
+      }
+    }, 1000);
+
+  </script>
+</head>
+
+<body>
+  <p id="quiz"></p>
+  <button id="ans_0" onclick="answer(0)"></button>
+  <button id="ans_1" onclick="answer(1)"></button>
+  <button id="ans_2" onclick="answer(2)"></button>
+  <button id="ans_3" onclick="answer(3)"></button>
+  <button id="ans_4" onclick="answer(4)"></button>
+  <ul id="log"></ul>
+</body>
+
+</html>

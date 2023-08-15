@@ -1,0 +1,67 @@
+<html>
+
+<head>
+  <script type="text/javascript">
+    function minus(a, b) {
+      return ({ x: a.x - b.x, y: a.y - b.y });
+    }
+    function mul(a, b) {
+      return ({ x: a.x * b.x, y: a.y * b.y });
+    }
+    function cross(a, b) {
+      return a.x * b.y - a.y * b.x;
+    }
+    function LR(a, b, c) {
+      return cross(minus(b, a), minus(c, a));
+    }
+    function Circle(n) {
+      let r = [];
+      for (let i = 0; i <= n; i++) {
+        r.push({ x: Math.cos(1 / n * i * Math.PI * 2) / 2 + 0.5, y: Math.sin(1 / n * i * Math.PI * 2) / 2 + 0.5 });
+      }
+      return r;
+    }
+
+    function render() {
+      let c = document.getElementById("canvas");
+      let w = 1000;
+      let h = 1000;
+      let ctx = c.getContext("2d");
+      ctx.fillStyle = "#222222";
+      ctx.fillRect(0, 0, w, h);
+
+      let q = Circle(30);
+      let o=0;
+      let p=0;
+      for (let i = 0; i < 100000; i++) {
+        let P = { x: Math.random(), y: Math.random() };
+        let in1 = true;
+        for (let j = 0; j < q.length - 1; j++) {
+          in1 = in1 && LR(q[j], q[j + 1], P) > 0;
+        }
+        if (in1 && LR(q[17],q[5],P) > 0 && LR(q[10],q[28],P) > 0) {
+          ctx.fillStyle = "#44FF44";
+          o++;
+        } else  if(in1){
+          ctx.fillStyle = "#FF4444";
+          p++;
+        } else{
+          ctx.fillStyle = "#444444";
+        }
+
+        ctx.fillRect((P.x * w) >> 0, (P.y * h) >> 0, 1, 1);
+      }
+      console.log(o,p);
+    }
+
+    setTimeout(() => {
+      render();
+    }, 200);
+  </script>
+</head>
+
+<body>
+  <canvas id="canvas" width="1000" height="1000" style="background:rgb(0, 0, 0)"></canvas>
+</body>
+
+</html>

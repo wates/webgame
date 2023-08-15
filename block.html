@@ -67,16 +67,22 @@
     function update() {
       if (L) {
         px -= 10;
+        if (px < 80) {
+          px = 80;
+        }
       }
       if (R) {
         px += 10;
+        if (px > 1700) {
+          px = 1700;
+        }
       }
       if (S) {
         if (cooldown == 0) {
           ball.push({
             x: px,
-            y: py,
-            vx: 0,
+            y: py - 20,
+            vx: 10,
             vy: -10
           });
           cooldown = 30;
@@ -87,7 +93,19 @@
         cooldown--;
       }
 
-      ball = ball.filter(a => !a.del);
+      for (var i = 0; i < ball.length; i++) {
+        if (stage[(ball[i].y / 32) >> 0][((ball[i].x + ball[i].vx) / 32) >> 0]) {
+          ball[i].vx *= -1;
+        }
+        if (stage[((ball[i].y+ball[i].vy) / 32) >> 0][(ball[i].x / 32) >> 0]) {
+          ball[i].vy *= -1;
+        }
+
+        ball[i].x += ball[i].vx;
+        ball[i].y += ball[i].vy;
+      }
+
+      //ball = ball.filter(a => !a.del);
     }
 
     function render() {
@@ -118,7 +136,8 @@
 
       for (var i = 0; i < ball.length; i++) {
         ctx.fillStyle = "#ccccff";
-        ctx.arc(ball[i].x, ball[i].y, 10, 0, Math.PI);
+        //ctx.arc(ball[i].x, ball[i].y, 10, 0, Math.PI);
+        ctx.fillRect(ball[i].x - 4, ball[i].y - 4, 8, 8);
       }
 
       ctx.fillStyle = "#4444FF";

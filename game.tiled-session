@@ -1,0 +1,65 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "map1.json",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "fileStates": {
+        "map1.js": {
+            "scale": 1.059074074074074,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 540.0944221017661,
+                "y": 180.3462143731422
+            }
+        },
+        "map1.json": {
+            "scale": 1.059074074074074,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 539.1502010841057,
+                "y": 180.3462143731422
+            }
+        },
+        "map1.tmx": {
+            "scale": 1.0344444444444443,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 551.9871106337273,
+                "y": 178.8399570354458
+            }
+        },
+        "tiles_packed.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "last.exportedFilePath": "N:/マイドライブ/work/webgame",
+    "last.imagePath": "N:/マイドライブ/work/webgame",
+    "map.fixedSize": true,
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 18,
+    "map.tileWidth": 18,
+    "map.width": 60,
+    "openFiles": [
+        "tiles_packed.tsx",
+        "map1.tmx",
+        "map1.json"
+    ],
+    "project": "game.tiled-project",
+    "recentFiles": [
+        "tiles_packed.tsx",
+        "map1.tmx",
+        "map1.json",
+        "map1.js"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 18,
+        "width": 18
+    }
+}
