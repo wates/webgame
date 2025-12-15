@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PicQuiz クイズ</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #0b1220;
+      --card: #101a32;
+      --text: #e2e8f0;
+      --muted: #9ba7c0;
+      --accent: #f97316;
+      --accent-2: #38bdf8;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "Noto Sans JP", "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 15% 20%, #1f2948 0%, #0f172a 45%, #0b1220 80%);
+    }
+
+    .app-shell { max-width: 1080px; margin: 0 auto; padding: 32px 22px 64px; }
+
+    .hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .logo-stack { display: flex; align-items: center; gap: 12px; }
+
+    .badge { background: linear-gradient(145deg, var(--accent), #fbbf24); color: #0b1220; font-weight: 700; padding: 10px 14px; border-radius: 12px; box-shadow: var(--shadow); letter-spacing: 0.04em; }
+    .eyebrow { margin: 0; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-size: 12px; }
+    h1 { margin: 4px 0 8px; font-size: clamp(26px, 4vw, 32px); }
+    .hero p { margin: 0; color: var(--muted); }
+
+    .nav { display: flex; flex-wrap: wrap; gap: 8px; }
+    .nav-btn { border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04); color: var(--text); padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; backdrop-filter: blur(6px); }
+    .nav-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .nav-btn.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #0b1220; border-color: transparent; box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35); }
+
+    main { background: linear-gradient(160deg, rgba(16, 26, 50, 0.9), rgba(12, 20, 38, 0.88)); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 22px; padding: 22px; box-shadow: var(--shadow); backdrop-filter: blur(10px); }
+
+    .panel { background: var(--card); border-radius: var(--radius); padding: 18px 18px 14px; border: 1px solid rgba(255, 255, 255, 0.06); }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); color: var(--muted); font-size: 13px; letter-spacing: 0.01em; }
+    .cta { display: inline-flex; align-items: center; gap: 10px; padding: 12px 16px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #0b1220; font-weight: 700; border-radius: 12px; border: none; cursor: pointer; box-shadow: 0 12px 30px rgba(56, 189, 248, 0.28); }
+    .cta.secondary { background: rgba(255,255,255,0.08); color: var(--text); box-shadow: none; border: 1px solid rgba(255,255,255,0.12); }
+    .cta:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 12px; }
+    .stat { padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.07); background: rgba(255, 255, 255, 0.04); color: var(--muted); }
+    .stat strong { display: block; color: var(--text); font-size: 18px; }
+
+    .quiz-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .chip { padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.08); color: var(--muted); }
+
+    .question { margin: 8px 0 14px; font-size: 18px; letter-spacing: 0.01em; }
+
+    .quiz-visual { margin: 12px 0; text-align: center; }
+    .quiz-visual img { max-width: 100%; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: var(--shadow); }
+
+    .answer { margin: 12px 0; padding: 12px; border-radius: 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.4); color: var(--text); }
+
+    .footer { margin-top: 18px; color: var(--muted); font-size: 13px; text-align: right; }
+
+    @media (max-width: 600px) { .hero { flex-direction: column; align-items: flex-start; } main { padding: 16px; } }
+  </style>
+</head>
+<body>
+  <div class="app-shell" id="app"></div>
+
+  <script>
+    (() => {
+                              const cardImage = (label, icon, c1, c2, { showLabel, showIcon }) => "data:image/svg+xml;utf8," + encodeURIComponent(
+        `<svg width="320" height="200" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient></defs><rect width="320" height="200" rx="22" fill="url(#bg)"/><circle cx="72" cy="100" r="46" fill="rgba(255,255,255,0.16)"/>${showIcon ? `<text x="68" y="108" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="40" fill="#ffffff" opacity="0.92">${icon}</text>` : ""}${showLabel ? `<text x="150" y="112" font-family="Segoe UI, sans-serif" font-size="32" fill="#ffffff" font-weight="700">${label}</text>` : ""}</svg>`
+      );
+
+      const makeCard = (label, icon, c1, c2) => ({
+        emoji: cardImage(label, icon, c1, c2, { showLabel: false, showIcon: true }),
+        label: cardImage(label, icon, c1, c2, { showLabel: true, showIcon: false })
+      });
+
+      const palette = [
+        ["#f97316", "#1d4ed8"],
+        ["#22c55e", "#065f46"],
+        ["#f59e0b", "#b45309"],
+        ["#38bdf8", "#0ea5e9"],
+        ["#c084fc", "#6b21a8"],
+        ["#f472b6", "#9d174d"],
+        ["#10b981", "#047857"],
+        ["#fbbf24", "#92400e"],
+      ];
+
+      const baseWords = [
+        { english: "mug", japanese: "コップ", icon: "☕" },
+        { english: "key", japanese: "鍵", icon: "🔑" },
+        { english: "wallet", japanese: "財布", icon: "💳" },
+        { english: "notebook", japanese: "手帳", icon: "📒" },
+        { english: "chair", japanese: "椅子", icon: "🪑" },
+        { english: "desk", japanese: "机", icon: "🗄️" },
+        { english: "phone", japanese: "電話", icon: "📱" },
+        { english: "bag", japanese: "かばん", icon: "👜" },
+        { english: "shoe", japanese: "靴", icon: "👟" },
+        { english: "watch", japanese: "腕時計", icon: "⌚" },
+        { english: "apple", japanese: "りんご", icon: "🍎" },
+        { english: "banana", japanese: "バナナ", icon: "🍌" },
+        { english: "bread", japanese: "パン", icon: "🍞" },
+        { english: "milk", japanese: "牛乳", icon: "🥛" },
+        { english: "egg", japanese: "卵", icon: "🥚" },
+        { english: "cheese", japanese: "チーズ", icon: "🧀" },
+        { english: "rice", japanese: "ごはん", icon: "🍚" },
+        { english: "cake", japanese: "ケーキ", icon: "🍰" },
+        { english: "cookie", japanese: "クッキー", icon: "🍪" },
+        { english: "ice cream", japanese: "アイスクリーム", icon: "🍨" },
+        { english: "pizza", japanese: "ピザ", icon: "🍕" },
+        { english: "hamburger", japanese: "ハンバーガー", icon: "🍔" },
+        { english: "hotdog", japanese: "ホットドッグ", icon: "🌭" },
+        { english: "sandwich", japanese: "サンドイッチ", icon: "🥪" },
+        { english: "salad", japanese: "サラダ", icon: "🥗" },
+        { english: "carrot", japanese: "にんじん", icon: "🥕" },
+        { english: "corn", japanese: "とうもろこし", icon: "🌽" },
+        { english: "strawberry", japanese: "いちご", icon: "🍓" },
+        { english: "grapes", japanese: "ぶどう", icon: "🍇" },
+        { english: "watermelon", japanese: "スイカ", icon: "🍉" },
+        { english: "lemon", japanese: "レモン", icon: "🍋" },
+        { english: "orange", japanese: "オレンジ", icon: "🍊" },
+        { english: "peach", japanese: "もも", icon: "🍑" },
+        { english: "pear", japanese: "なし", icon: "🍐" },
+        { english: "pineapple", japanese: "パイナップル", icon: "🍍" },
+        { english: "cherry", japanese: "さくらんぼ", icon: "🍒" },
+        { english: "chocolate", japanese: "チョコレート", icon: "🍫" },
+        { english: "candy", japanese: "キャンディー", icon: "🍬" },
+        { english: "popcorn", japanese: "ポップコーン", icon: "🍿" },
+        { english: "donut", japanese: "ドーナツ", icon: "🍩" },
+        { english: "pretzel", japanese: "プレッツェル", icon: "🥨" },
+        { english: "pancake", japanese: "パンケーキ", icon: "🥞" },
+        { english: "taco", japanese: "タコス", icon: "🌮" },
+        { english: "burrito", japanese: "ブリトー", icon: "🌯" },
+        { english: "bento", japanese: "弁当", icon: "🍱" },
+        { english: "sushi", japanese: "すし", icon: "🍣" },
+        { english: "rice ball", japanese: "おにぎり", icon: "🍙" },
+        { english: "dumpling", japanese: "ぎょうざ", icon: "🥟" },
+        { english: "avocado", japanese: "アボカド", icon: "🥑" },
+        { english: "tomato", japanese: "トマト", icon: "🍅" },
+        { english: "cucumber", japanese: "きゅうり", icon: "🥒" },
+        { english: "potato", japanese: "じゃがいも", icon: "🥔" },
+        { english: "broccoli", japanese: "ブロッコリー", icon: "🥦" },
+        { english: "mushroom", japanese: "きのこ", icon: "🍄" },
+        { english: "shrimp", japanese: "えび", icon: "🍤" },
+        { english: "meat", japanese: "肉", icon: "🍖" },
+        { english: "bacon", japanese: "ベーコン", icon: "🥓" },
+        { english: "fish", japanese: "さかな", icon: "🐟" },
+        { english: "chicken", japanese: "チキン", icon: "🍗" },
+        { english: "eggplant", japanese: "なす", icon: "🍆" },
+        { english: "pepper", japanese: "とうがらし", icon: "🌶️" },
+        { english: "soup", japanese: "スープ", icon: "🥣" },
+        { english: "croissant", japanese: "クロワッサン", icon: "🥐" },
+        { english: "baguette", japanese: "バゲット", icon: "🥖" },
+        { english: "tea", japanese: "お茶", icon: "🍵" },
+        { english: "water", japanese: "水", icon: "💧" },
+        { english: "juice", japanese: "ジュース", icon: "🧃" },
+        { english: "soda", japanese: "ソーダ", icon: "🥤" },
+        { english: "ice", japanese: "こおり", icon: "🧊" },
+        { english: "honey", japanese: "はちみつ", icon: "🍯" },
+        { english: "map", japanese: "地図", icon: "🗺️" },
+        { english: "book", japanese: "本", icon: "📘" },
+        { english: "pencil", japanese: "えんぴつ", icon: "✏️" },
+        { english: "pen", japanese: "ペン", icon: "🖊️" },
+        { english: "scissors", japanese: "はさみ", icon: "✂️" },
+        { english: "paintbrush", japanese: "ふで", icon: "🖌️" },
+        { english: "ruler", japanese: "ものさし", icon: "📏" },
+        { english: "backpack", japanese: "ランドセル", icon: "🎒" },
+        { english: "light bulb", japanese: "電球", icon: "💡" },
+        { english: "plug", japanese: "電源プラグ", icon: "🔌" },
+        { english: "battery", japanese: "電池", icon: "🔋" },
+        { english: "magnet", japanese: "磁石", icon: "🧲" },
+        { english: "hammer", japanese: "金づち", icon: "🔨" },
+        { english: "wrench", japanese: "レンチ", icon: "🔧" },
+        { english: "gear", japanese: "歯車", icon: "⚙️" },
+        { english: "lock", japanese: "鍵", icon: "🔒" },
+        { english: "dice", japanese: "さいころ", icon: "🎲" },
+        { english: "gamepad", japanese: "ゲームパッド", icon: "🎮" },
+        { english: "puzzle", japanese: "パズル", icon: "🧩" },
+        { english: "soccer", japanese: "サッカー", icon: "⚽" },
+        { english: "basketball", japanese: "バスケット", icon: "🏀" },
+        { english: "baseball", japanese: "野球", icon: "⚾" },
+        { english: "tennis", japanese: "テニス", icon: "🎾" },
+        { english: "volleyball", japanese: "バレーボール", icon: "🏐" },
+        { english: "medal", japanese: "メダル", icon: "🥇" },
+        { english: "trophy", japanese: "トロフィー", icon: "🏆" },
+        { english: "flag", japanese: "はた", icon: "🇯🇵" },
+        { english: "fire", japanese: "火", icon: "🔥" },
+        { english: "ocean", japanese: "うみ", icon: "🌊" },
+        { english: "mountain", japanese: "山", icon: "⛰️" },
+      ];
+
+      const words = baseWords.map((item, index) => {
+        const [c1, c2] = palette[index % palette.length];
+        const card = makeCard(item.english.toUpperCase(), item.icon, c1, c2);
+        return { ...item, card };
+      });
+
+      const shuffle = (list) => {
+        const arr = [...list];
+        for (let i = arr.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      };
+
+      const state = { mode: "ja", sessions: {} };
+      state.sessions.ja = makeSession("ja");
+      state.sessions.en = makeSession("en");
+
+      const app = document.getElementById("app");
+
+      function makeSession(mode) {
+        const deck = shuffle(words);
+        return {
+          current: 0,
+          revealed: false,
+          questions: deck.map((word) => buildQuestion(word, mode))
+        };
+      }
+
+        function buildQuestion(word, mode) {
+          if (mode === "ja") {
+            return {
+              prompt: `『${word.english}』の意味はどれ？`,
+              answer: word.japanese,
+              image: word.card.label
+            };
+          }
+
+          return {
+            prompt: `「${word.japanese}」を英語で？`,
+            answer: word.english,
+            image: word.card.emoji
+          };
+        }
+
+      function navButton(route, label) {
+        return `<button class="nav-btn" data-route="${route}">${label}</button>`;
+      }
+
+      function renderShell() {
+        app.innerHTML = `
+          <header class="hero">
+            <div class="logo-stack">
+              <div class="badge">PicQuiz</div>
+              <div>
+                <h1>英語と日本語と emoji</h1>
+              </div>
+            </div>
+            <nav class="nav">
+              ${navButton("ja", "日本語をあてる")}
+              ${navButton("en", "英語をあてる")}
+            </nav>
+          </header>
+          <main id="view"></main>
+        `;
+
+        attachNavHandlers();
+      }
+
+      function attachNavHandlers() {
+        app.querySelectorAll("[data-route]").forEach((btn) => {
+          btn.addEventListener("click", (event) => {
+            event.preventDefault();
+            navigate(btn.dataset.route);
+          });
+        });
+      }
+
+      function getRoute() {
+        const key = window.location.hash.replace("#", "");
+        return routes[key] ? key : "ja";
+      }
+
+      function navigate(route) {
+        if (route === getRoute()) {
+          renderRoute(route);
+        } else {
+          window.location.hash = route;
+        }
+      }
+
+      function renderRoute(route) {
+        const key = routes[route] ? route : "ja";
+        const previous = state.mode;
+        state.mode = key;
+        if (!state.sessions[key] || previous !== key) {
+          state.sessions[key] = makeSession(key);
+        }
+        const view = document.getElementById("view");
+        const current = routes[key];
+
+        view.innerHTML = current.view();
+        setActiveNav(key);
+        current.bind?.();
+        document.title = current.title;
+      }
+
+      function setActiveNav(route) {
+        app.querySelectorAll(".nav-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.route === route);
+        });
+      }
+
+      function renderQuiz(mode) {
+        const session = state.sessions[mode];
+        const done = session.current >= session.questions.length;
+
+        if (done) {
+          return `
+            <section class="panel result">
+              <div class="pill">${mode === "ja" ? "日本語をあてる" : "英語をあてる"} 完了</div>
+              <h2 style="margin: 8px 0 4px;">全て確認しました</h2>
+              <p style="margin: 0; color: var(--muted);">もう一度始めるか、別モードに切り替えてください。</p>
+              <button class="cta" data-action="restart">最初から</button>
+            </section>
+          `;
+        }
+
+        const question = session.questions[session.current];
+        const imageBlock = question.image ? `<div class="quiz-visual"><img src="${question.image}" alt="${question.prompt}" loading="lazy"></div>` : "";
+        const answerBlock = session.revealed ? `<div class="answer">${question.answer}</div>` : "";
+
+        return `
+          <section class="panel">
+            <div class="quiz-header">
+              <div class="chip">第 ${session.current + 1} 問 / 全 ${session.questions.length} 問</div>
+              <div class="chip">モード: ${mode === "ja" ? "日本語をあてる" : "英語をあてる"}</div>
+            </div>
+            ${imageBlock}
+            <div class="question">${question.prompt}</div>
+            ${answerBlock}
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+              ${session.revealed ? "" : `<button class="cta" data-action="reveal">答えを見る</button>`}
+              <button class="cta secondary" data-action="next" ${session.revealed ? "" : "disabled"}>次の単語へ</button>
+            </div>
+          </section>
+        `;
+      }
+
+      function bindQuiz(mode) {
+        document.querySelector("[data-action=\"reveal\"]")?.addEventListener("click", () => {
+          state.sessions[mode].revealed = true;
+          renderRoute(mode);
+        });
+
+        document.querySelector("[data-action=\"next\"]")?.addEventListener("click", () => {
+          if (!state.sessions[mode].revealed) return;
+          state.sessions[mode].current += 1;
+          state.sessions[mode].revealed = false;
+          renderRoute(mode);
+        });
+
+        document.querySelector("[data-action=\"restart\"]")?.addEventListener("click", () => {
+          resetQuiz(mode);
+        });
+      }
+
+      function resetQuiz(mode) {
+        state.sessions[mode] = makeSession(mode);
+        renderRoute(mode);
+      }
+
+      const routes = {
+        ja: { title: "PicQuiz | 日本語をあてる", view: () => renderQuiz("ja"), bind: () => bindQuiz("ja") },
+        en: { title: "PicQuiz | 英語をあてる", view: () => renderQuiz("en"), bind: () => bindQuiz("en") }
+      };
+
+      function bootstrap() {
+        renderShell();
+        window.addEventListener("hashchange", () => renderRoute(getRoute()));
+        renderRoute(getRoute());
+      }
+
+      bootstrap();
+    })();
+  </script>
+</body>
+</html>
